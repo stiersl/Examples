@@ -1,0 +1,35 @@
+
+services:
+  testweatherapi:
+    image: ${REGISTRY:-localhost}/testweatherapi:${TAG:-latest}
+    build:
+      context: ./src/TestWeatherAPI
+      dockerfile: Dockerfile
+    ports:
+      - "6969:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - PROFICY_UAA_ADMIN_CLIENTSECRET=/run/secrets/proficy_uaa_admin_clientsecret_file
+      - Logging__LogLevel__Default=Information
+    secrets:
+      - site.crt
+      - site.key
+      - proficy_uaa_admin_clientsecret_file
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      resources:
+        limits:
+          cpus: "1"
+          memory: 0.50G
+      restart_policy:
+        condition: on-failure
+secrets:
+  site.crt:
+    file: .secrets/saserver.pem
+  site.key:
+    file: .secrets/sakey.pem
+  proficy_uaa_admin_clientsecret_file:
+    file: .secrets/proficy_uaa_admin_clientsecret
